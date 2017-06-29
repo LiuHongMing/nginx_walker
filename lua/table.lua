@@ -74,3 +74,18 @@ print(table.maxn(tbtest))
 for i = 1, table.maxn(tbtest) do
     print(tbtest[i])
 end
+
+-- 元方法
+--"__index"	取下标操作用于访问 table[key]
+mytable = setmetatable({key1 = "value1"},   --原始表
+    {__index = function(self, key)          --重载函数
+        if key == "key2" then
+            return "metatablevalue"
+        end
+    end
+    })
+
+print(mytable.key1,mytable.key2)  --> output：value1 metatablevalue
+-- 高阶用法
+t = setmetatable({[1] = "hello"}, {__index = {[2] = "world"}})
+print(t[1], t[2])   -->hello world
