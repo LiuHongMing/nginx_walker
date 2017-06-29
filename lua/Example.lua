@@ -40,6 +40,9 @@ print(corp["city"])           -->output:"Beijing"
 print(corp.staff[1])          -->output:Jack
 print(corp[10])               -->output:360
 
+local mytable = setmetatable({}, {})
+print(mytable)
+
 -- function
 local function foo()
     print("in the function")

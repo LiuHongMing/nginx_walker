@@ -42,7 +42,7 @@ ngx.req.read_body()
 ngx.say("post args begin", "<br/>")
 local post_args = ngx.req.get_post_args()
 
-for k, v in pairs(post_args) do
+for k, v in ipairs(post_args) do
     if type(v) == "table" then
         ngx.say(k, " : ", table.concat(v, ","), "<br/>")
     else
