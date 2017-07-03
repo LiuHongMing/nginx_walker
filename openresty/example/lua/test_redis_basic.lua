@@ -1,11 +1,14 @@
+--连接池
 local function close_redis(red)
     if not red then
         return
     end
-
-    local ok, err = red:close()
+    --释放连接(连接池实现)
+    local pool_max_idle_time = 10000 --毫秒
+    local pool_size = 100 --连接池大小
+    local ok, err = red:set_keepalive(pool_max_idle_time, pool_size)
     if not ok then
-        ngx.say("close redis error : ", err)
+        ngx.say("set keepalive error : ", err)
     end
 end
 
@@ -39,7 +42,7 @@ if not resp then
 end
 --得到的数据为空处理
 if resp == ngx.null then
-    resp = ''  --比如默认值
+    resp = '' --比如默认值
 end
 ngx.say("msg : ", resp)
 
