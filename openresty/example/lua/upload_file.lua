@@ -96,7 +96,8 @@ local target_dir = root_dir .. "/upload/"
 local target_file
 
 -- 文件是否成功保存
-local ret
+local is_end
+local file_name
 
 while true do
     local state, res, err = form:read()
@@ -117,7 +118,7 @@ while true do
                 local seg = string.trim(kv)
                 if seg:find("filename") then
                     local kvfile = string.split(seg, "=")
-                    local file_name = string.sub(kvfile[2], 2, -2)
+                    file_name = string.sub(kvfile[2], 2, -2)
                     if file_name then
                         --截取文件扩展名
                         local i, j = string.find(file_name, "[.]")
@@ -143,7 +144,7 @@ while true do
             target_file:close()
             target_file = nil
         end
-        ret = true
+        is_end = true
     elseif state == "eof" then
         -- 文件读取结束
         break
@@ -152,6 +153,14 @@ while true do
     end
 end
 
-if ret then
-    ngx.say("Upload completed")
+local cjson = require "cjson"
+
+local response_result = {
+    file_id = file_name,
+    width = 0,
+    height = 0
+}
+
+if is_end then
+    ngx.say(cjson.encode(response_result))
 end
