@@ -87,10 +87,13 @@ string.trim = function(s)
 end
 
 -- 文件保存的根路径
-local dir_root = "/usr/example/upload/"
+local root_dir = "/usr/example"
+local target_dir = root_dir .. "/upload/"
+-- 创建目录
+--os.execute("mkdir " .. target_dir)
 
 -- 保存的文件对象
-local save_file
+local target_file
 
 -- 文件是否成功保存
 local ret
@@ -103,26 +106,25 @@ while true do
     end
 
     if state == "header" then
-        --开始读取 http header
-        --解析出本次上传的文件名
+        --开始读取 header
         local key = res[1]
         local value = res[2]
         ngx.log(ngx.INFO, key, "=", value)
         if key == "Content-Disposition" then
-            -- 解析出本次上传的文件名
             -- Content-Disposition=form-data; name="file"; filename="chrome.png"
             local kvlist = string.split(value, ';')
             for _, kv in ipairs(kvlist) do
                 local seg = string.trim(kv)
                 if seg:find("filename") then
                     local kvfile = string.split(seg, "=")
-                    local filename = string.sub(kvfile[2], 2, -2)
-                    if filename then
-                        local i, j = string.find(filename, "[.]")
-                        filename = ngx.md5(ngx.now()) .. string.sub(filename, i)
-                        save_file = io.open(dir_root .. filename, "w+")
-                        if not save_file then
-                            ngx.say("failed to open file ", filename)
+                    local file_name = string.sub(kvfile[2], 2, -2)
+                    if file_name then
+                        --截取文件扩展名
+                        local i, j = string.find(file_name, "[.]")
+                        file_name = ngx.md5(ngx.now()) .. string.sub(file_name, i)
+                        target_file = io.open(target_dir .. file_name, "w+")
+                        if not target_file then
+                            ngx.say("failed to open file ", file_name)
                             return
                         end
                         break
@@ -132,14 +134,14 @@ while true do
         end
     elseif state == "body" then
         -- 开始读取 http body
-        if save_file then
-            save_file:write(res)
+        if target_file then
+            target_file:write(res)
         end
     elseif state == "part_end" then
         -- 文件写结束，关闭文件
-        if save_file then
-            save_file:close()
-            save_file = nil
+        if target_file then
+            target_file:close()
+            target_file = nil
         end
         ret = true
     elseif state == "eof" then
