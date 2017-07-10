@@ -1,6 +1,6 @@
 local empty = {}
 
-print(os.time())
+print(os.time(), os.date("%Y"), os.date("%m"), os.date("%d"))
 
 local fileName = "chrome.png"
 
@@ -11,3 +11,18 @@ print(string.sub(fileName, i))
 
 local foo = { id = 1, "hello" }
 print(foo.id .. "," .. foo[1])
+
+foo.bar = function(a, b, c)
+    print(a, b, c)
+end
+
+foo.bar(1, 2, 3)
+
+local res = { [1] = "Content-Disposition" }
+
+if res[1] ~= "Content-Disposition" then
+    print("~=")
+end
+
+local status = os.execute("dir")
+print(status)

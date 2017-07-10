@@ -29,14 +29,16 @@ end
 local root_dir = "/usr/example"
 local target_dir = root_dir .. "/upload/"
 -- 创建目录
---os.execute("mkdir " .. target_dir)
+os.execute("mkdir -p " .. target_dir)
 
 -- 保存的文件对象
-local target_file
+local file_name
+local file_ext
+local file_target
 
 -- 文件是否成功保存
 local is_end
-local file_name
+
 
 while true do
     local state, res, err = form:read()
@@ -60,10 +62,11 @@ while true do
                     file_name = string.sub(kvfile[2], 2, -2)
                     if file_name then
                         --截取文件扩展名
-                        local i, j = string.find(file_name, "[.]")
-                        file_name = ngx.md5(ngx.now()) .. string.sub(file_name, i)
-                        target_file = io.open(target_dir .. file_name, "w+")
-                        if not target_file then
+                        local i = string.find(file_name, "[.]")
+                        file_ext = string.sub(file_name, i)
+                        file_name = ngx.md5("upload" .. ngx.now()) .. file_ext
+                        file_target = io.open(target_dir .. file_name, "w+")
+                        if not file_target then
                             ngx.say("failed to open file ", file_name)
                             return
                         end
@@ -74,32 +77,47 @@ while true do
         end
     elseif state == "body" then
         -- 开始读取 http body
-        if target_file then
-            target_file:write(res)
+        if file_target then
+            file_target:write(res)
         end
     elseif state == "part_end" then
         -- 文件写结束，关闭文件
-        if target_file then
-            target_file:close()
-            target_file = nil
+        if file_target then
+            file_target:close()
+            file_target = nil
         end
         is_end = true
     elseif state == "eof" then
         -- 文件读取结束
         break
-    else
-        ngx.log(ngx.INFO, "do other things")
     end
 end
 
 local cjson = require "cjson"
 
-local response_result = {
+ngx.log(ngx.INFO, "gm begin ------")
+local thumbnails = { "100x100", "200x200" }
+local img = target_dir .. file_name;
+for _, resize in pairs(thumbnails) do
+    local cmd = "/usr/graphicsmagick-1.3.20/bin/gm convert -resize " .. resize .. " " .. img .. " " .. img .. "_" .. resize .. file_ext
+    local ret = os.execute(cmd .. " 2>> /tmp/upload_error.log")
+    ngx.log(ngx.INFO, "gm convert : ", cmd, ", ret : ", ret)
+end
+
+local cmd = "/usr/graphicsmagick-1.3.20/bin/gm identify " .. img .. " -format '%w %h' 2>> /tmp/upload_error.log"
+local out = io.popen(cmd, "r")
+local all = out:read("*a")
+local props = string.split(string.gsub(all, "\n", " "), " ")
+out:close()
+ngx.log(ngx.INFO, "gm identify : ", cmd, ", props : ", cjson.encode(props))
+ngx.log(ngx.INFO, "gm end -----")
+
+local response_body = {
     file_id = file_name,
-    width = 0,
-    height = 0
+    width = props[1],
+    height = props[2]
 }
 
 if is_end then
-    ngx.say(cjson.encode(response_result))
+    ngx.say(cjson.encode(response_body))
 end

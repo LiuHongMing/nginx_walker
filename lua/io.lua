@@ -11,6 +11,11 @@ require "lfs"
 local mkdir = "f:/lua_lsf"
 local res = lfs.attributes(mkdir)
 for k, v in pairs(res) do
-    print(k, v)
+    --print(k, v)
 end
 
+local stdout = io.popen("dir", "r")
+local all = stdout:read("*a")
+print(all)
+
+stdout:close()
