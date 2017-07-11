@@ -54,7 +54,9 @@ if not res then
     return close_db(db)
 end
 
-if #(res) == 0 then
-    --ngx.say("Forbidden ...")
-    return ngx.exit(ngx.HTTP_FORBIDDEN)
+if #(res) ~= 0 then
+    ngx.log(ngx.INFO, "rewrite ^ /upload/img last")
+    ngx.req.set_uri("/upload/img", true)
 end
+
+return ngx.exit(ngx.HTTP_FORBIDDEN)

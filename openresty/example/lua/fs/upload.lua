@@ -41,13 +41,13 @@ local is_end
 
 
 while true do
-    local state, res, err = form:read()
-    if not state then
+    local typ, res, err = form:read()
+    if not typ then
         ngx.say("failed to read: ", err)
         return
     end
 
-    if state == "header" then
+    if typ == "header" then
         --开始读取 header
         local key = res[1]
         local value = res[2]
@@ -75,19 +75,19 @@ while true do
                 end
             end
         end
-    elseif state == "body" then
+    elseif typ == "body" then
         -- 开始读取 http body
         if file_target then
             file_target:write(res)
         end
-    elseif state == "part_end" then
+    elseif typ == "part_end" then
         -- 文件写结束，关闭文件
         if file_target then
             file_target:close()
             file_target = nil
         end
         is_end = true
-    elseif state == "eof" then
+    elseif typ == "eof" then
         -- 文件读取结束
         break
     end
