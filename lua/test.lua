@@ -26,3 +26,16 @@ end
 
 local status = os.execute("dir")
 print(status)
+
+local function test()
+
+end
+
+local function test2()
+
+end
+
+local res = (test() and test2()) or true
+if res then
+    print("OooooooO")
+end

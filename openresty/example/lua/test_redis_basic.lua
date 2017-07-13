@@ -47,3 +47,5 @@ end
 ngx.say("msg : ", resp)
 
 close_redis(red)
+
+

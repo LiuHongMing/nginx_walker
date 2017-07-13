@@ -1,6 +1,6 @@
 
 --初始化耗时模块
-local redis = require
+local redis = require "resty.redis"
 local cjson = require "cjson"
 
 --全局变量，不推荐
